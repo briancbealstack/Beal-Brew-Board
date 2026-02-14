@@ -1,0 +1,741 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, maximum-scale=1.0, user-scalable=no">
+<title>Beal Brew Board</title>
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Brew Board">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#0c0a09">
+<meta name="format-detection" content="telephone=no">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --bg:#0c0a09;--surface:rgba(255,255,255,.035);--surface2:rgba(255,255,255,.06);
+  --border:rgba(255,255,255,.07);--border2:rgba(255,255,255,.12);
+  --t1:#fafaf9;--t2:#a8a29e;--t3:#78716c;--t4:#57534e;
+  --amber:#f59e0b;--amber2:#d97706;--amber-glow:rgba(245,158,11,.12);
+  --copper:#c2703e;--gold:#eab308;
+  --green:#22c55e;--red:#ef4444;--blue:#3b82f6;
+}
+html{height:-webkit-fill-available;overflow:hidden}
+body{font-family:'DM Sans',-apple-system,sans-serif;background:var(--bg);color:var(--t1);min-height:100vh;min-height:-webkit-fill-available;overflow-y:auto;height:100vh;height:-webkit-fill-available;-webkit-font-smoothing:antialiased;-webkit-tap-highlight-color:transparent;-webkit-touch-callout:none}
+
+.app{max-width:600px;margin:0 auto;padding:0 20px 100px;padding-left:max(20px,env(safe-area-inset-left));padding-right:max(20px,env(safe-area-inset-right));padding-bottom:max(100px,calc(env(safe-area-inset-bottom)+80px))}
+
+/* Header */
+.hdr{text-align:center;padding:60px 0 32px;padding-top:max(60px,calc(env(safe-area-inset-top)+24px))}
+.hdr-icon{font-size:40px;margin-bottom:8px}
+.hdr h1{font-family:'DM Serif Display',serif;font-size:36px;font-weight:400;letter-spacing:-.02em;color:var(--t1);line-height:1.1}
+.hdr h1 span{color:var(--amber);font-style:italic}
+.hdr-sub{font-size:14px;color:var(--t3);margin-top:8px;font-weight:400}
+
+/* Stats row */
+.stats{display:flex;gap:10px;margin-bottom:28px}
+.stat{flex:1;background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:14px 12px;text-align:center}
+.stat-n{font-family:'DM Serif Display',serif;font-size:28px;color:var(--amber);line-height:1}
+.stat-l{font-size:11px;color:var(--t3);margin-top:4px;font-weight:500;text-transform:uppercase;letter-spacing:.06em}
+
+/* Tabs */
+.tabs{display:flex;gap:4px;background:var(--surface);border-radius:14px;padding:4px;margin-bottom:24px}
+.tab{flex:1;padding:10px 8px;border-radius:11px;border:none;background:none;color:var(--t3);font-family:inherit;font-size:14px;font-weight:600;cursor:pointer;transition:all .2s;touch-action:manipulation;min-height:44px}
+.tab.on{background:var(--amber);color:#0c0a09}
+
+/* Add Form */
+.form-sec{display:none;margin-bottom:28px}
+.form-sec.on{display:block}
+.form-card{background:var(--surface);border:1px solid var(--border);border-radius:20px;padding:24px;backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px)}
+.form-title{font-family:'DM Serif Display',serif;font-size:20px;margin-bottom:20px}
+.fg{margin-bottom:16px}
+.fg:last-child{margin-bottom:0}
+.fg label{display:block;font-size:12px;font-weight:600;color:var(--t3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px}
+.fg input,.fg textarea,.fg select{width:100%;background:rgba(255,255,255,.05);border:1px solid var(--border);border-radius:12px;padding:12px 16px;color:var(--t1);font-family:inherit;font-size:16px;font-weight:400;outline:none;transition:border-color .2s;-webkit-appearance:none;appearance:none}
+.fg input:focus,.fg textarea:focus,.fg select:focus{border-color:var(--amber)}
+.fg textarea{resize:vertical;min-height:80px;font-size:15px;line-height:1.5}
+.fg select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%2378716c' fill='none' stroke-width='2'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 14px center}
+.fg-row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.fg-row3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px}
+
+/* Rank input */
+.rank-input{display:flex;gap:4px;flex-wrap:wrap}
+.rank-btn{width:38px;height:38px;border-radius:10px;border:1px solid var(--border);background:var(--surface);color:var(--t2);font-family:inherit;font-size:15px;font-weight:600;cursor:pointer;transition:all .15s;touch-action:manipulation}
+.rank-btn.on{background:var(--amber);color:#0c0a09;border-color:var(--amber)}
+.rank-btn:active{transform:scale(.92)}
+
+/* Brewery input */
+.fg-brew{position:relative}
+.brew-suggest{position:absolute;top:100%;left:0;right:0;background:rgba(28,25,23,.98);border:1px solid var(--border2);border-radius:12px;margin-top:4px;max-height:160px;overflow-y:auto;z-index:50;display:none}
+.brew-suggest.on{display:block}
+.brew-opt{padding:12px 16px;font-size:14px;color:var(--t2);cursor:pointer;border-bottom:1px solid var(--border)}
+.brew-opt:last-child{border-bottom:none}
+.brew-opt:active{background:var(--amber-glow);color:var(--amber)}
+
+.btn-row{display:flex;gap:10px;margin-top:20px}
+.btn{flex:1;padding:14px 20px;border-radius:14px;border:none;font-family:inherit;font-size:15px;font-weight:600;cursor:pointer;transition:all .2s;touch-action:manipulation;min-height:48px}
+.btn-primary{background:var(--amber);color:#0c0a09}
+.btn-primary:active{filter:brightness(.85);transform:scale(.97)}
+.btn-secondary{background:var(--surface2);color:var(--t2);border:1px solid var(--border)}
+.btn-danger{background:rgba(239,68,68,.12);color:var(--red);border:1px solid rgba(239,68,68,.15)}
+
+/* Beer List */
+.list-sec{display:none}
+.list-sec.on{display:block}
+.search-wrap{position:relative;margin-bottom:16px}
+.search-wrap input{width:100%;background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:12px 16px 12px 44px;color:var(--t1);font-family:inherit;font-size:15px;outline:none;-webkit-appearance:none}
+.search-wrap input:focus{border-color:var(--amber)}
+.search-icon{position:absolute;left:14px;top:50%;transform:translateY(-50%);font-size:18px;color:var(--t3);pointer-events:none}
+
+.sort-row{display:flex;gap:6px;margin-bottom:18px;flex-wrap:wrap}
+.sort-pill{padding:7px 14px;border-radius:980px;border:1px solid var(--border);background:none;color:var(--t3);font-family:inherit;font-size:12px;font-weight:600;cursor:pointer;transition:all .2s;touch-action:manipulation}
+.sort-pill.on{background:var(--amber-glow);color:var(--amber);border-color:rgba(245,158,11,.25)}
+
+.empty{text-align:center;padding:60px 20px;color:var(--t3)}
+.empty-icon{font-size:48px;margin-bottom:12px}
+.empty-title{font-family:'DM Serif Display',serif;font-size:20px;color:var(--t2);margin-bottom:8px}
+
+/* Beer Card */
+.beer-card{background:var(--surface);border:1px solid var(--border);border-radius:18px;padding:20px;margin-bottom:12px;transition:all .2s;backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);cursor:pointer;position:relative;overflow:hidden}
+.beer-card:active{background:var(--surface2);transform:scale(.99)}
+.beer-top{display:flex;justify-content:space-between;align-items:flex-start;gap:12px}
+.beer-name{font-family:'DM Serif Display',serif;font-size:19px;line-height:1.2;flex:1}
+.beer-avg{display:flex;flex-direction:column;align-items:center;width:48px;flex-shrink:0}
+.beer-avg-n{font-family:'DM Serif Display',serif;font-size:24px;line-height:1}
+.beer-avg-l{font-size:9px;color:var(--t3);text-transform:uppercase;letter-spacing:.06em;font-weight:600;margin-top:2px}
+.beer-meta{display:flex;gap:8px;margin-top:8px;flex-wrap:wrap}
+.beer-tag{font-size:12px;font-weight:500;color:var(--t3);background:rgba(255,255,255,.04);padding:3px 10px;border-radius:980px}
+.beer-tag.abv{color:var(--amber)}
+.beer-ranks{display:flex;gap:16px;margin-top:12px}
+.beer-rank{font-size:13px;color:var(--t2)}
+.beer-rank strong{font-weight:700}
+.beer-rank .rk{font-weight:700}
+.rk-k{color:var(--copper)}
+.rk-b{color:var(--blue)}
+
+/* Expanded detail */
+.beer-detail{display:none;margin-top:14px;padding-top:14px;border-top:1px solid var(--border)}
+.beer-card.open .beer-detail{display:block}
+.beer-notes{font-size:14px;color:var(--t2);line-height:1.6;margin-bottom:12px;font-style:italic}
+.beer-notes::before{content:"\201C";font-family:'DM Serif Display',serif;font-size:28px;color:var(--amber);line-height:0;vertical-align:-8px;margin-right:2px}
+.beer-brewery{font-size:13px;color:var(--t3);margin-bottom:12px}
+.beer-date{font-size:12px;color:var(--t4)}
+.beer-actions{display:flex;gap:8px;margin-top:12px}
+.beer-actions .btn{padding:10px 16px;font-size:13px;min-height:40px}
+
+/* Toast */
+.toast{position:fixed;bottom:30px;left:50%;transform:translateX(-50%) translateY(100px);background:var(--t1);color:#0c0a09;padding:14px 28px;border-radius:980px;font-weight:700;font-size:14px;z-index:9999;transition:transform .4s cubic-bezier(.25,1,.5,1);pointer-events:none;box-shadow:0 8px 30px rgba(0,0,0,.5)}
+.toast.show{transform:translateX(-50%) translateY(0)}
+
+/* FAB */
+.fab{position:fixed;bottom:24px;right:24px;bottom:max(24px,calc(env(safe-area-inset-bottom)+8px));right:max(24px,env(safe-area-inset-right));width:56px;height:56px;border-radius:50%;background:var(--amber);border:none;color:#0c0a09;font-size:28px;font-weight:300;cursor:pointer;box-shadow:0 4px 24px rgba(245,158,11,.3);transition:all .2s;z-index:100;touch-action:manipulation;display:flex;align-items:center;justify-content:center}
+.fab:active{transform:scale(.9)}
+.fab.hide{transform:scale(0);opacity:0}
+
+/* Confirm overlay */
+.overlay{position:fixed;inset:0;background:rgba(0,0,0,.7);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);z-index:200;display:none;align-items:center;justify-content:center;padding:20px;padding-bottom:env(safe-area-inset-bottom)}
+.overlay.on{display:flex}
+.overlay-card{background:#1c1917;border:1px solid var(--border2);border-radius:22px;padding:28px;max-width:340px;width:100%;text-align:center}
+.overlay-title{font-family:'DM Serif Display',serif;font-size:20px;margin-bottom:8px}
+.overlay-sub{font-size:14px;color:var(--t3);margin-bottom:20px}
+
+/* Export section */
+.export-sec{display:none;padding-top:8px}
+.export-sec.on{display:block}
+.export-card{background:var(--surface);border:1px solid var(--border);border-radius:20px;padding:24px;text-align:center}
+.export-card h3{font-family:'DM Serif Display',serif;font-size:20px;margin-bottom:8px}
+.export-card p{font-size:13px;color:var(--t3);margin-bottom:20px}
+.export-textarea{width:100%;min-height:120px;background:rgba(255,255,255,.03);border:1px solid var(--border);border-radius:12px;padding:12px;color:var(--t2);font-family:'DM Sans',monospace;font-size:12px;resize:vertical;margin-bottom:16px}
+
+@media(max-width:380px){
+  .stats{gap:6px}.stat{padding:10px 8px}.stat-n{font-size:24px}
+  .beer-name{font-size:17px}.beer-avg-n{font-size:22px}
+  .rank-btn{width:34px;height:34px;font-size:13px}
+}
+@media(display-mode:standalone){
+  .hdr{padding-top:max(50px,calc(env(safe-area-inset-top)+12px))}
+}
+</style>
+</head>
+<body>
+
+<div class="toast" id="toast"></div>
+
+<div class="overlay" id="confirmOverlay">
+  <div class="overlay-card">
+    <div class="overlay-title" id="confirmTitle">Delete Beer?</div>
+    <div class="overlay-sub" id="confirmSub">This cannot be undone.</div>
+    <div class="btn-row">
+      <button class="btn btn-secondary" id="confirmNo">Cancel</button>
+      <button class="btn btn-danger" id="confirmYes">Delete</button>
+    </div>
+  </div>
+</div>
+
+<div class="app">
+  <header class="hdr">
+    <div class="hdr-icon">🍺</div>
+    <h1>Beal <span>Brew Board</span></h1>
+    <p class="hdr-sub">Keri &amp; Brian's beer rankings</p>
+  </header>
+
+  <div class="stats" id="stats">
+    <div class="stat"><div class="stat-n" id="statTotal">0</div><div class="stat-l">Beers</div></div>
+    <div class="stat"><div class="stat-n" id="statBreweries">0</div><div class="stat-l">Breweries</div></div>
+    <div class="stat"><div class="stat-n" id="statAvg">—</div><div class="stat-l">Avg Rating</div></div>
+  </div>
+
+  <div class="tabs">
+    <button class="tab on" data-tab="list">Rankings</button>
+    <button class="tab" data-tab="add">Add Beer</button>
+    <button class="tab" data-tab="export">Data</button>
+  </div>
+
+  <!-- ADD/EDIT FORM -->
+  <div class="form-sec" id="addSec">
+    <div class="form-card">
+      <div class="form-title" id="formTitle">Add a Beer</div>
+
+      <div class="fg fg-brew">
+        <label>Brewery</label>
+        <input type="text" id="fBrewery" placeholder="e.g. Sierra Nevada" autocomplete="off" autocapitalize="words">
+        <div class="brew-suggest" id="brewSuggest"></div>
+      </div>
+
+      <div class="fg">
+        <label>Beer Name</label>
+        <input type="text" id="fName" placeholder="e.g. Hazy Little Thing" autocapitalize="words">
+      </div>
+
+      <div class="fg-row">
+        <div class="fg">
+          <label>Style / Type</label>
+          <select id="fType">
+            <option value="">Select...</option>
+            <option>IPA</option>
+            <option>Hazy IPA</option>
+            <option>Double IPA</option>
+            <option>West Coast IPA</option>
+            <option>Pale Ale</option>
+            <option>Lager</option>
+            <option>Pilsner</option>
+            <option>Wheat Beer</option>
+            <option>Hefeweizen</option>
+            <option>Stout</option>
+            <option>Imperial Stout</option>
+            <option>Porter</option>
+            <option>Brown Ale</option>
+            <option>Amber Ale</option>
+            <option>Red Ale</option>
+            <option>Blonde Ale</option>
+            <option>Belgian</option>
+            <option>Tripel</option>
+            <option>Saison</option>
+            <option>Sour</option>
+            <option>Gose</option>
+            <option>Berliner Weisse</option>
+            <option>Fruit Beer</option>
+            <option>Kölsch</option>
+            <option>Scotch Ale</option>
+            <option>Barleywine</option>
+            <option>Cream Ale</option>
+            <option>Hard Seltzer</option>
+            <option>Cider</option>
+            <option>Mead</option>
+            <option>Other</option>
+          </select>
+        </div>
+        <div class="fg">
+          <label>ABV %</label>
+          <input type="number" id="fAbv" placeholder="6.7" min="0" max="30" step="0.1" inputmode="decimal">
+        </div>
+      </div>
+
+      <div class="fg">
+        <label>Keri's Rank (1–10)</label>
+        <div class="rank-input" id="rankKeri"></div>
+      </div>
+
+      <div class="fg">
+        <label>Brian's Rank (1–10)</label>
+        <div class="rank-input" id="rankBrian"></div>
+      </div>
+
+      <div class="fg">
+        <label>Tasting Notes</label>
+        <textarea id="fNotes" placeholder="Citrusy, smooth finish, light body..."></textarea>
+      </div>
+
+      <div class="btn-row">
+        <button class="btn btn-secondary" id="formCancel">Cancel</button>
+        <button class="btn btn-primary" id="formSave">Save Beer</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- BEER LIST -->
+  <div class="list-sec on" id="listSec">
+    <div class="search-wrap">
+      <span class="search-icon">🔍</span>
+      <input type="text" id="searchInput" placeholder="Search beers, breweries, styles...">
+    </div>
+    <div class="sort-row" id="sortRow">
+      <button class="sort-pill on" data-sort="avg">Avg Rating</button>
+      <button class="sort-pill" data-sort="keri">Keri's Pick</button>
+      <button class="sort-pill" data-sort="brian">Brian's Pick</button>
+      <button class="sort-pill" data-sort="newest">Newest</button>
+      <button class="sort-pill" data-sort="abv">ABV</button>
+    </div>
+    <div id="beerList"></div>
+  </div>
+
+  <!-- EXPORT -->
+  <div class="export-sec" id="exportSec">
+    <div class="export-card">
+      <h3>Your Data</h3>
+      <p>Copy to back up, or paste saved data to restore.</p>
+      <textarea class="export-textarea" id="exportArea" placeholder="Your data will appear here..."></textarea>
+      <div class="btn-row">
+        <button class="btn btn-secondary" id="exportCopy">Copy Data</button>
+        <button class="btn btn-primary" id="exportImport">Import Data</button>
+      </div>
+      <div style="margin-top:20px;padding-top:16px;border-top:1px solid var(--border)">
+        <button class="btn btn-danger" id="exportClear" style="width:100%">Delete All Data</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<button class="fab" id="fab" title="Add beer">+</button>
+
+<script>
+(function(){
+
+  var STORAGE = "beal_brew_board_v1";
+  var beers = loadData();
+  var editId = null;
+  var keriRank = 0, brianRank = 0;
+  var currentSort = "avg";
+  var searchTerm = "";
+  var confirmCb = null;
+
+  function $(id){ return document.getElementById(id); }
+
+  /* ===== DATA ===== */
+  function loadData(){
+    try{
+      var raw = localStorage.getItem(STORAGE);
+      if(raw) return JSON.parse(raw);
+    }catch(e){}
+    return [];
+  }
+  function saveData(){
+    try{ localStorage.setItem(STORAGE, JSON.stringify(beers)); }catch(e){}
+  }
+  function genId(){ return Date.now().toString(36) + Math.random().toString(36).slice(2,6); }
+
+  /* ===== RANK BUTTONS ===== */
+  function buildRankBtns(containerId, setter){
+    var el = $(containerId);
+    var h = "";
+    for(var i=1;i<=10;i++){
+      h+='<button type="button" class="rank-btn" data-v="'+i+'">'+i+'</button>';
+    }
+    el.innerHTML = h;
+    el.addEventListener("click", function(e){
+      var btn = e.target.closest(".rank-btn");
+      if(!btn) return;
+      var v = parseInt(btn.getAttribute("data-v"),10);
+      setter(v);
+      var all = el.querySelectorAll(".rank-btn");
+      for(var j=0;j<all.length;j++) all[j].classList.toggle("on", parseInt(all[j].getAttribute("data-v"),10)===v);
+    });
+  }
+  buildRankBtns("rankKeri", function(v){keriRank=v;});
+  buildRankBtns("rankBrian", function(v){brianRank=v;});
+
+  function setRankUI(containerId, val){
+    var btns = $(containerId).querySelectorAll(".rank-btn");
+    for(var i=0;i<btns.length;i++) btns[i].classList.toggle("on", parseInt(btns[i].getAttribute("data-v"),10)===val);
+  }
+
+  /* ===== BREWERY AUTOCOMPLETE ===== */
+  function getBreweries(){
+    var map={};
+    for(var i=0;i<beers.length;i++){
+      var b = (beers[i].brewery||"").trim();
+      if(b) map[b]=true;
+    }
+    return Object.keys(map).sort();
+  }
+
+  $("fBrewery").addEventListener("input", function(){
+    var val = this.value.trim().toLowerCase();
+    var box = $("brewSuggest");
+    if(!val){ box.classList.remove("on"); return; }
+    var all = getBreweries();
+    var matches = all.filter(function(b){ return b.toLowerCase().indexOf(val)!==-1; });
+    if(!matches.length){ box.classList.remove("on"); return; }
+    box.innerHTML = matches.map(function(b){ return '<div class="brew-opt">'+esc(b)+'</div>'; }).join("");
+    box.classList.add("on");
+  });
+  $("fBrewery").addEventListener("blur", function(){ setTimeout(function(){ $("brewSuggest").classList.remove("on"); },200); });
+  $("brewSuggest").addEventListener("click", function(e){
+    var opt = e.target.closest(".brew-opt");
+    if(!opt) return;
+    $("fBrewery").value = opt.textContent;
+    $("brewSuggest").classList.remove("on");
+  });
+
+  /* ===== TABS ===== */
+  var tabs = document.querySelectorAll(".tab");
+  tabs.forEach(function(t){
+    t.addEventListener("click", function(){
+      var target = this.getAttribute("data-tab");
+      switchTab(target);
+    });
+  });
+
+  function switchTab(target){
+    tabs.forEach(function(t){ t.classList.toggle("on", t.getAttribute("data-tab")===target); });
+    $("listSec").classList.toggle("on", target==="list");
+    $("addSec").classList.toggle("on", target==="add");
+    $("exportSec").classList.toggle("on", target==="export");
+    $("fab").classList.toggle("hide", target==="add");
+    if(target==="add" && !editId) resetForm();
+    if(target==="export") $("exportArea").value = JSON.stringify(beers, null, 2);
+    if(target==="list") renderList();
+  }
+
+  /* ===== FAB ===== */
+  $("fab").addEventListener("click", function(){
+    editId = null;
+    resetForm();
+    switchTab("add");
+  });
+
+  /* ===== FORM ===== */
+  function resetForm(){
+    $("formTitle").textContent = "Add a Beer";
+    $("fBrewery").value = "";
+    $("fName").value = "";
+    $("fType").value = "";
+    $("fAbv").value = "";
+    $("fNotes").value = "";
+    keriRank = 0; brianRank = 0;
+    setRankUI("rankKeri",0);
+    setRankUI("rankBrian",0);
+    $("formSave").textContent = "Save Beer";
+  }
+
+  function populateForm(beer){
+    $("formTitle").textContent = "Edit Beer";
+    $("fBrewery").value = beer.brewery || "";
+    $("fName").value = beer.name || "";
+    $("fType").value = beer.type || "";
+    $("fAbv").value = beer.abv || "";
+    $("fNotes").value = beer.notes || "";
+    keriRank = beer.keri || 0; brianRank = beer.brian || 0;
+    setRankUI("rankKeri", keriRank);
+    setRankUI("rankBrian", brianRank);
+    $("formSave").textContent = "Update Beer";
+  }
+
+  $("formSave").addEventListener("click", function(){
+    var name = $("fName").value.trim();
+    if(!name){ toast("Please enter a beer name"); return; }
+    if(!keriRank && !brianRank){ toast("Add at least one ranking"); return; }
+
+    var entry = {
+      id: editId || genId(),
+      name: name,
+      brewery: $("fBrewery").value.trim(),
+      type: $("fType").value,
+      abv: parseFloat($("fAbv").value) || 0,
+      notes: $("fNotes").value.trim(),
+      keri: keriRank,
+      brian: brianRank,
+      date: editId ? (findBeer(editId)||{}).date || new Date().toISOString() : new Date().toISOString(),
+      updated: new Date().toISOString()
+    };
+
+    if(editId){
+      var idx = beers.findIndex(function(b){return b.id===editId;});
+      if(idx!==-1) beers[idx] = entry;
+      toast("Beer updated!");
+    } else {
+      beers.push(entry);
+      toast("Beer added! 🍻");
+    }
+
+    saveData();
+    editId = null;
+    switchTab("list");
+  });
+
+  $("formCancel").addEventListener("click", function(){
+    editId = null;
+    switchTab("list");
+  });
+
+  function findBeer(id){
+    for(var i=0;i<beers.length;i++) if(beers[i].id===id) return beers[i];
+    return null;
+  }
+
+  /* ===== SORT ===== */
+  $("sortRow").addEventListener("click", function(e){
+    var pill = e.target.closest(".sort-pill");
+    if(!pill) return;
+    currentSort = pill.getAttribute("data-sort");
+    document.querySelectorAll(".sort-pill").forEach(function(p){ p.classList.toggle("on", p.getAttribute("data-sort")===currentSort); });
+    renderList();
+  });
+
+  /* ===== SEARCH ===== */
+  $("searchInput").addEventListener("input", function(){
+    searchTerm = this.value.trim().toLowerCase();
+    renderList();
+  });
+
+  /* ===== RENDER LIST ===== */
+  function avgRank(b){
+    if(b.keri && b.brian) return (b.keri+b.brian)/2;
+    return b.keri || b.brian || 0;
+  }
+
+  function sortBeers(arr){
+    var copy = arr.slice();
+    switch(currentSort){
+      case "avg": copy.sort(function(a,b){return avgRank(b)-avgRank(a);}); break;
+      case "keri": copy.sort(function(a,b){return (b.keri||0)-(a.keri||0);}); break;
+      case "brian": copy.sort(function(a,b){return (b.brian||0)-(a.brian||0);}); break;
+      case "newest": copy.sort(function(a,b){return new Date(b.date)-new Date(a.date);}); break;
+      case "abv": copy.sort(function(a,b){return (b.abv||0)-(a.abv||0);}); break;
+    }
+    return copy;
+  }
+
+  function filterBeers(arr){
+    if(!searchTerm) return arr;
+    return arr.filter(function(b){
+      var hay = (b.name+" "+b.brewery+" "+b.type+" "+b.notes).toLowerCase();
+      return hay.indexOf(searchTerm)!==-1;
+    });
+  }
+
+  function esc(s){ return (s||"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;"); }
+
+  function rankColor(n){
+    if(n>=9) return "#22c55e";
+    if(n>=7) return "#f59e0b";
+    if(n>=5) return "#f97316";
+    return "#ef4444";
+  }
+
+  function renderList(){
+    var filtered = filterBeers(beers);
+    var sorted = sortBeers(filtered);
+
+    /* Stats */
+    $("statTotal").textContent = beers.length;
+    var bmap = {};
+    for(var i=0;i<beers.length;i++){
+      var br = (beers[i].brewery||"").trim();
+      if(br) bmap[br] = true;
+    }
+    $("statBreweries").textContent = Object.keys(bmap).length;
+    if(beers.length){
+      var sum=0, cnt=0;
+      for(var i=0;i<beers.length;i++){
+        var a = avgRank(beers[i]);
+        if(a){ sum+=a; cnt++; }
+      }
+      $("statAvg").textContent = cnt ? (sum/cnt).toFixed(1) : "—";
+    } else {
+      $("statAvg").textContent = "—";
+    }
+
+    if(!sorted.length){
+      $("beerList").innerHTML = '<div class="empty"><div class="empty-icon">🍺</div><div class="empty-title">'+(searchTerm?"No matches":"No beers yet")+'</div><p style="font-size:14px;color:var(--t3)">'+(searchTerm?"Try a different search":"Tap + to log your first beer")+'</p></div>';
+      return;
+    }
+
+    var h = "";
+    for(var i=0;i<sorted.length;i++){
+      var b = sorted[i];
+      var avg = avgRank(b);
+      var avgStr = avg ? avg.toFixed(1) : "—";
+      var dateStr = "";
+      try{
+        var dt = new Date(b.date);
+        dateStr = dt.toLocaleDateString("en-US",{month:"short",day:"numeric",year:"numeric"});
+      }catch(e){}
+
+      h+='<div class="beer-card" data-id="'+b.id+'">'
+        +'<div class="beer-top">'
+        +'<div class="beer-name">'+esc(b.name)+'</div>'
+        +'<div class="beer-avg"><div class="beer-avg-n" style="color:'+rankColor(avg)+'">'+avgStr+'</div><div class="beer-avg-l">avg</div></div>'
+        +'</div>'
+        +'<div class="beer-meta">';
+      if(b.type) h+='<span class="beer-tag">'+esc(b.type)+'</span>';
+      if(b.abv) h+='<span class="beer-tag abv">'+b.abv+'%</span>';
+      if(b.brewery) h+='<span class="beer-tag">'+esc(b.brewery)+'</span>';
+      h+='</div>'
+        +'<div class="beer-ranks">';
+      if(b.keri) h+='<div class="beer-rank">Keri: <span class="rk rk-k">'+b.keri+'/10</span></div>';
+      if(b.brian) h+='<div class="beer-rank">Brian: <span class="rk rk-b">'+b.brian+'/10</span></div>';
+      h+='</div>';
+
+      /* Detail (click to expand) */
+      h+='<div class="beer-detail">';
+      if(b.notes) h+='<div class="beer-notes">'+esc(b.notes)+'</div>';
+      if(b.brewery) h+='<div class="beer-brewery">📍 '+esc(b.brewery)+'</div>';
+      h+='<div class="beer-date">Added '+dateStr+'</div>';
+      h+='<div class="beer-actions">'
+        +'<button class="btn btn-secondary" data-edit="'+b.id+'">Edit</button>'
+        +'<button class="btn btn-danger" data-del="'+b.id+'">Delete</button>'
+        +'</div>';
+      h+='</div></div>';
+    }
+    $("beerList").innerHTML = h;
+  }
+
+  /* ===== LIST EVENTS ===== */
+  $("beerList").addEventListener("click", function(e){
+    var editBtn = e.target.closest("[data-edit]");
+    if(editBtn){
+      e.stopPropagation();
+      var beer = findBeer(editBtn.getAttribute("data-edit"));
+      if(!beer) return;
+      editId = beer.id;
+      populateForm(beer);
+      switchTab("add");
+      return;
+    }
+
+    var delBtn = e.target.closest("[data-del]");
+    if(delBtn){
+      e.stopPropagation();
+      var id = delBtn.getAttribute("data-del");
+      showConfirm("Delete this beer?", "This cannot be undone.", function(){
+        beers = beers.filter(function(b){return b.id!==id;});
+        saveData();
+        renderList();
+        toast("Beer removed");
+      });
+      return;
+    }
+
+    var card = e.target.closest(".beer-card");
+    if(card){
+      /* Close others */
+      document.querySelectorAll(".beer-card.open").forEach(function(c){
+        if(c!==card) c.classList.remove("open");
+      });
+      card.classList.toggle("open");
+    }
+  });
+
+  /* ===== CONFIRM DIALOG ===== */
+  function showConfirm(title, sub, cb){
+    $("confirmTitle").textContent = title;
+    $("confirmSub").textContent = sub;
+    $("confirmOverlay").classList.add("on");
+    confirmCb = cb;
+  }
+  $("confirmNo").addEventListener("click", function(){
+    $("confirmOverlay").classList.remove("on");
+    confirmCb = null;
+  });
+  $("confirmYes").addEventListener("click", function(){
+    $("confirmOverlay").classList.remove("on");
+    if(confirmCb) confirmCb();
+    confirmCb = null;
+  });
+
+  /* ===== EXPORT/IMPORT ===== */
+  $("exportCopy").addEventListener("click", function(){
+    var area = $("exportArea");
+    area.value = JSON.stringify(beers, null, 2);
+    area.select();
+    try{ document.execCommand("copy"); toast("Copied to clipboard!"); }
+    catch(e){
+      if(navigator.clipboard){
+        navigator.clipboard.writeText(area.value).then(function(){toast("Copied!");});
+      }
+    }
+  });
+
+  $("exportImport").addEventListener("click", function(){
+    var raw = $("exportArea").value.trim();
+    if(!raw){ toast("Paste data first"); return; }
+    try{
+      var arr = JSON.parse(raw);
+      if(!Array.isArray(arr)) throw new Error("Not an array");
+      showConfirm("Import Data?", "This will replace all current beers with "+arr.length+" imported entries.", function(){
+        beers = arr;
+        saveData();
+        renderList();
+        toast("Imported "+arr.length+" beers!");
+      });
+    }catch(e){
+      toast("Invalid data format");
+    }
+  });
+
+  $("exportClear").addEventListener("click", function(){
+    showConfirm("Delete All Data?", "This will permanently remove all "+beers.length+" beers.", function(){
+      beers = [];
+      saveData();
+      renderList();
+      switchTab("list");
+      toast("All data cleared");
+    });
+  });
+
+  /* ===== TOAST ===== */
+  function toast(msg){
+    var t = $("toast");
+    t.textContent = msg;
+    t.classList.add("show");
+    setTimeout(function(){ t.classList.remove("show"); }, 2400);
+  }
+
+  /* ===== iOS Home Screen Icon ===== */
+  try{
+    var ic = document.createElement("canvas");
+    ic.width=180; ic.height=180;
+    var ctx = ic.getContext("2d");
+    ctx.fillStyle="#0c0a09";
+    ctx.beginPath(); ctx.roundRect(0,0,180,180,40); ctx.fill();
+    ctx.font="80px serif"; ctx.textAlign="center"; ctx.textBaseline="middle";
+    ctx.fillText("\uD83C\uDF7A",90,86);
+    var lnk=document.createElement("link");lnk.rel="apple-touch-icon";
+    lnk.href=ic.toDataURL("image/png");document.head.appendChild(lnk);
+  }catch(e){}
+
+  /* ===== iOS install hint ===== */
+  var isSA=window.navigator.standalone||window.matchMedia("(display-mode:standalone)").matches;
+  if(!isSA&&/iPhone|iPad|iPod/.test(navigator.userAgent)){
+    var seen=false;try{seen=sessionStorage.getItem("brew_hint");}catch(e){}
+    if(!seen){
+      var tip=document.createElement("div");
+      tip.style.cssText="position:fixed;bottom:0;left:0;right:0;background:rgba(28,25,23,.97);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);padding:16px 20px;padding-bottom:max(16px,env(safe-area-inset-bottom));text-align:center;z-index:999;border-top:1px solid rgba(255,255,255,.1);font-family:'DM Sans',sans-serif;";
+      tip.innerHTML='<div style="font-size:14px;color:#fafaf9;font-weight:600;margin-bottom:4px">Add to Home Screen for the best experience</div><div style="font-size:12px;color:#a8a29e">Tap <span style="font-size:16px;vertical-align:middle">&#x1F4E4;</span> then \u201CAdd to Home Screen\u201D</div><button id="tipX" style="position:absolute;top:12px;right:16px;background:none;border:none;color:#78716c;font-size:20px;cursor:pointer;padding:4px">&times;</button>';
+      document.body.appendChild(tip);
+      document.getElementById("tipX").onclick=function(){tip.style.display="none";try{sessionStorage.setItem("brew_hint","1");}catch(e){}};
+      setTimeout(function(){if(tip.parentNode)tip.style.display="none";},8000);
+    }
+  }
+
+  /* ===== BOOT ===== */
+  renderList();
+
+})();
+</script>
+</body>
+</html>
